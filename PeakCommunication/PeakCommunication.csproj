@@ -5,11 +5,18 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="DbcParserLib" Version="1.7.0" />
     <PackageReference Include="Peak.PCANBasic.NET" Version="4.10.0.964" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="PCANBasic.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

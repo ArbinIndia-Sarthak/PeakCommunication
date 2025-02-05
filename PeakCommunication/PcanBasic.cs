@@ -28,6 +28,7 @@ namespace PeakCommunication
         // Import PCAN-Basic functions
         [DllImport(PcanBasicDll, EntryPoint = "CAN_Initialize")]
         public static extern uint CAN_Initialize(uint Channel, ushort Btr0Btr1, uint HwType, uint IOPort, ushort Interrupt);
+        public const ushort PCAN_BAUD_500K = 0x1C1;
 
         [DllImport(PcanBasicDll, EntryPoint = "CAN_Write")]
         public static extern uint CAN_Write(uint Channel, ref TPCANMsg Message);

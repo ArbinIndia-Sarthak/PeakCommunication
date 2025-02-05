@@ -1,6 +1,10 @@
 ﻿using System;
 using System.IO;
 using DbcParserLib;
+using Peak.Can.Basic;
+using PeakCommunication;
+using static PeakCommunication.PcanBasic;
+using TPCANHandle = System.UInt16;
 
 class Program
 {
@@ -15,7 +19,7 @@ class Program
         }
 
         // Create an instance of the DBC parser
-        
+
 
         // Parse the DBC file
         Dbc dbc = Parser.Parse(dbcFilePath);
@@ -50,6 +54,9 @@ class Program
         {
             Console.WriteLine("Error " + ex);
         }
-            
+
+       
+
+        SendCanMessage.InitialiseCANMessage();
     }
 }
