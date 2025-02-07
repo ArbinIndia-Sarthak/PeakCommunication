@@ -55,8 +55,9 @@ class Program
             Console.WriteLine("Error " + ex);
         }
 
-       
+
 
         SendCanMessage.InitialiseCANMessage();
+        //ReceiveCANMessages.InitialiseCANReceiver();
     }
 }

@@ -52,6 +52,10 @@ namespace PeakCommunication
             if (status == 0)
             {
                 Console.WriteLine("Message sent successfully!");
+                for (int i = 0; i < message.LEN; i++)
+                {
+                    Console.WriteLine(message.DATA[i]);
+                }
             }
             else
             {
