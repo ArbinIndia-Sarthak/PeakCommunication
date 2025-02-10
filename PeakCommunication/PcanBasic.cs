@@ -9,6 +9,7 @@ using Peak.Can.Basic;
 using System.Threading.Channels;
 using TPCANHandle = System.UInt16;
 using TPCANBitrateFD = System.String;
+using TPCANBitrate = System.String;
 
 
 namespace PeakCommunication
@@ -97,8 +98,8 @@ namespace PeakCommunication
 
         // Import PCAN-Basic functions
         [DllImport(PcanBasicDll, EntryPoint = "CAN_Initialize")]
-        public static extern uint CAN_Initialize(uint Channel, ushort Btr0Btr1, uint HwType, uint IOPort, ushort Interrupt);
-        public const ushort PCAN_BAUD_500K = 0x1C1;
+        public static extern uint CAN_Initialize(TPCANHandle Channel, TPCANBitrateFD Btr0Btr1, uint HwType, uint IOPort, ushort Interrupt);
+        public const string PCAN_BAUD_500K = "0x1C1";
 
         [DllImport(PcanBasicDll, EntryPoint = "CAN_InitializeFD")]
         public static extern TPCANStatus InitializeFD(TPCANHandle Channel,TPCANBitrateFD BitrateFD);
@@ -111,7 +112,7 @@ namespace PeakCommunication
 
 
         [DllImport(PcanBasicDll, EntryPoint = "CAN_Write")]
-        public static extern uint CAN_Write(uint Channel, ref TPCANMsg Message);
+        public static extern uint CAN_Write(TPCANHandle Channel, ref TPCANMsg Message);
 
         [DllImport(PcanBasicDll, EntryPoint = "CAN_Read")]
         public static extern uint CAN_Read(uint Channel, out TPCANMsg Message, IntPtr Timestamp);
