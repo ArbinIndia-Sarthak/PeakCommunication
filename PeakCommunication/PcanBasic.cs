@@ -116,6 +116,9 @@ namespace PeakCommunication
         [DllImport(PcanBasicDll, EntryPoint = "CAN_Read")]
         public static extern uint CAN_Read(uint Channel, out TPCANMsg Message, IntPtr Timestamp);
 
+        [DllImport(PcanBasicDll, EntryPoint = "CAN_ReadFD")]
+        public static extern TPCANStatus CAN_ReadFD(TPCANHandle Channel, out TPCANMsgFD Message, out nint timestamp);
+
         [DllImport(PcanBasicDll, EntryPoint = "CAN_Uninitialize")]
         public static extern uint CAN_Uninitialize(uint Channel);
     }
