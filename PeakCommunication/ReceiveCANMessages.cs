@@ -1,65 +1,68 @@
-﻿using Peak.Can.Basic.BackwardCompatibility;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Peak.Can.Basic.BackwardCompatibility;
 using static PeakCommunication.PcanBasic;
 
 namespace PeakCommunication
 {
-    public class ReceiveCANMessages
+    public class ReceiveCANFD
     {
-        public static void InitialiseCANReceiver()
+        public class ReceiveCanMessage
         {
-            var channel = TPCANHandle.PCAN_USB; // Change to the proper channel
-            ushort bitrate = PcanBasic.PCAN_BAUD_500K;
-
-//            // Initialize the channel with 500 kbps baud rate
-            uint status = PcanBasic.CAN_Initialize(channel, bitrate, 0, 0, 0);
-
-            if (status != 0)
+            public static void InitialiseCANReceiver()
             {
-                Console.WriteLine("Error initializing PCAN: " + status);
-                return;
-            }
-            Console.WriteLine("PCAN initialized successfully for receiving!");
+                var channel = TPCANHandle.PCAN_USB;  // Change to the proper channel
+                string bitrateFD = "f_clock_mhz=20, nom_brp=4, nom_tseg1=6, nom_tseg2=3, nom_sjw=1, data_brp=2, data_tseg1=3, data_tseg2=1, data_sjw=1";
 
-            // Start receiving messages
-            ReceiveMessages(channel);
+                PcanBasic.TPCANStatus status1 = PcanBasic.InitializeFD(channel, bitrateFD);
 
-            // Uninitialize PCAN after use
-            PcanBasic.CAN_Uninitialize(channel);
-        }
-
-        static void ReceiveMessages(uint channel)
-        {
-            PcanBasic.TPCANMsg message;
-            nint timestamp = 0;
-            //message.TYPE = 4;
-            message.LEN = 16;
-
-            while (true)
-            {
-                uint status = PcanBasic.CAN_Read(channel, out message, timestamp);
-
-                if (status == 0) // No error
+                if (status1 != PcanBasic.TPCANStatus.PCAN_ERROR_OK)
                 {
-                    Console.WriteLine("Received CAN message:");
-                    Console.WriteLine($"ID: {message.ID:X}");  // Print the ID in hexadecimal format
-                    Console.WriteLine($"Length: {message.LEN}"); // Print the message length
+                    Console.WriteLine("Error initializing PCAN: " + status1);
+                    return;
+                }
+                Console.WriteLine("PCAN receiver initialized successfully!");
+
+                // Start receiving CAN messages
+                while (true)
+                {
+                    ReceiveCANMessage(channel);
+                    Thread.Sleep(20);
+                }
+
+                // Uninitialize PCAN after use
+                CAN_Uninitialize(channel);
+            }
+
+            static void ReceiveCANMessage(TPCANHandle Channel)
+            {
+                PcanBasic.TPCANMsgFD message;
+                nint timestamp;
+                message.DLC = 64;
+                PcanBasic.TPCANStatus status = PcanBasic.CAN_ReadFD(Channel, out message, out timestamp);
+
+                if (status == PcanBasic.TPCANStatus.PCAN_ERROR_OK)
+                {
+                    Console.WriteLine("Message received!");
+                    Console.WriteLine("ID: 0x" + message.ID.ToString("X"));
+                    Console.WriteLine("DLC: " + message.DLC);
                     Console.Write("Data: ");
 
-                    // Print the message data in hexadecimal format
-                    foreach (byte b in message.DATA)
+                    for (int i = 0; i < message.DLC; i++)
                     {
-                        Console.Write($"{b:X2} ");
+                        Console.Write(message.DATA[i].ToString("X2") + " ");
                     }
-                    Console.WriteLine("\nTimestamp: " + timestamp + " µs");
+                    Console.WriteLine();
                 }
-                else if (status != (uint)TPCANStatus.PCAN_ERROR_QRCVEMPTY)
+                else
                 {
-                    Console.WriteLine("Error reading CAN message: " + status);
+                    Console.WriteLine("Receive Error: 0x" + status.ToString("X"));
                 }
-
-                Thread.Sleep(100); // Small delay to prevent CPU overuse
             }
         }
-
     }
+
 }

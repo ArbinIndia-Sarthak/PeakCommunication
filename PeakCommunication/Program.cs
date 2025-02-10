@@ -56,8 +56,8 @@ class Program
         }
 
 
-
-        SendCanMessage.InitialiseCANMessage();
+        SendCANMessageFD.InitialiseCANMessage();
+        //SendCanMessage.InitialiseCANMessage();
         //ReceiveCANMessages.InitialiseCANReceiver();
     }
 }

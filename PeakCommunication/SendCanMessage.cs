@@ -6,19 +6,19 @@ namespace PeakCommunication
     {
         public static void InitialiseCANMessage()
         {
-            var channel = TPCANHandle.PCAN_USB;  // Change to the proper channel
-                                                 // ushort bitrate = PcanBasic.PCAN_BAUD_500K;
-                                                 // Nominal Bitrate: 500 kbps, Data Bitrate: 2 Mbps
-            string bitrateFD = "f_clock_mhz=20, nom_brp=4, nom_tseg1=6, nom_tseg2=3, nom_sjw=1, data_brp=2, data_tseg1=3, data_tseg2=1, data_sjw=1";
+            var channel = (uint)TPCANHandle.PCAN_USB;  // Change to the proper channel
+                                                       // ushort bitrate = PcanBasic.PCAN_BAUD_500K;
+                                                       // Nominal Bitrate: 500 kbps, Data Bitrate: 2 Mbps
+            ushort bitrate = PcanBasic.PCAN_BAUD_500K;
 
-            PcanBasic.TPCANStatus status1 = PcanBasic.InitializeFD(channel, bitrateFD);
+            uint status = PcanBasic.CAN_Initialize(channel, bitrate, 0, 0, 0);
 
             // Initialize the channel with 500 kbps baud rate
             //uint status = PcanBasic.CAN_Initialize(channel, bitrate, 0, 0, 0);
 
-            if (status1 != PcanBasic.TPCANStatus.PCAN_ERROR_OK)
+            if (status != 0)
             {
-                Console.WriteLine("Error initializing PCAN: " + status1);
+                Console.WriteLine("Error initializing PCAN: " + status);
                 return;
             }
             Console.WriteLine("PCAN initialized successfully!");
@@ -34,35 +34,25 @@ namespace PeakCommunication
             PcanBasic.CAN_Uninitialize(channel);
         }
 
-        static void SendCANMessage(TPCANHandle Channel)
+        static void SendCANMessage(uint Channel)
         {
 
             // Create a CAN message
             PcanBasic.TPCANMsgFD message = new PcanBasic.TPCANMsgFD();
-            
-                message.ID = 0x123; // Standard CAN ID (11-bit)
-                message.DLC = 15;
-                message.MSGTYPE = PcanBasic.TPCANMessageType.PCAN_MESSAGE_FD | PcanBasic.TPCANMessageType.PCAN_MESSAGE_BRS; 
 
-                // Set CAN data (example: 8-byte payload)
-                message.DATA = new byte[64]
-                {
-                    0x12, 0x00, 0x00, 0x00, 0x12, 0x00, 0x00, 0x00,
-                    0x12, 0x00, 0x00, 0x00, 0x12, 0x00, 0x00, 0x00,
-                    0x12, 0x00, 0x00, 0x00, 0x12, 0x00, 0x00, 0x00,
-                    0x12, 0x00, 0x00, 0x00, 0x12, 0x00, 0x00, 0x00,
-                    0x12, 0x00, 0x00, 0x00, 0x12, 0x00, 0x00, 0x00,
-                    0x12, 0x00, 0x00, 0x00, 0x12, 0x00, 0x00, 0x00,
-                    0x12, 0x00, 0x00, 0x00, 0x12, 0x00, 0x00, 0x00,
-                    0x12, 0x00, 0x00, 0x00, 0x12, 0x00, 0x00, 0x00
-                };
-            
+            message.ID = 0x123; // Standard CAN ID (11-bit)
+            message.DLC = 8;
+            message.MSGTYPE = PcanBasic.TPCANMessageType.PCAN_MESSAGE_FD | PcanBasic.TPCANMessageType.PCAN_MESSAGE_BRS;
+
+            // Set CAN data (example: 8-byte payload)
+            message.DATA = new byte[8] { 0x12, 0x00, 0x00, 0x00, 0x12, 0x00, 0x00, 0x00 };
+
 
             // Send the message
-            PcanBasic.TPCANStatus status = PcanBasic.CAN_WriteFD(Channel, ref message);
+            uint status = PcanBasic.CAN_WriteFD(Channel, ref message);
             //uint status = PcanBasic.CAN_Write(channel, ref message);
 
-            if (status == PcanBasic.TPCANStatus.PCAN_ERROR_OK)
+            if (status == 0)
             {
                 Console.WriteLine("Message sent successfully!");
                 for (int i = 0; i < message.DLC; i++)
