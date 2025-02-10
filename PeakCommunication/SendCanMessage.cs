@@ -6,10 +6,9 @@ namespace PeakCommunication
     {
         public static void InitialiseCANMessage()
         {
-            var channel = (uint)TPCANHandle.PCAN_USB;  // Change to the proper channel
-                                                       // ushort bitrate = PcanBasic.PCAN_BAUD_500K;
-                                                       // Nominal Bitrate: 500 kbps, Data Bitrate: 2 Mbps
-            ushort bitrate = PcanBasic.PCAN_BAUD_500K;
+            //var channel = (uint)TPCANHandle.PCAN_USB;
+            var channel = TPCANHandle.PCAN_USB;
+            string bitrate = PcanBasic.PCAN_BAUD_500K;
 
             uint status = PcanBasic.CAN_Initialize(channel, bitrate, 0, 0, 0);
 
@@ -34,7 +33,7 @@ namespace PeakCommunication
             PcanBasic.CAN_Uninitialize(channel);
         }
 
-        static void SendCANMessage(uint Channel)
+        static void SendCANMessage(TPCANHandle Channel)
         {
 
             // Create a CAN message
@@ -49,7 +48,7 @@ namespace PeakCommunication
 
 
             // Send the message
-            uint status = PcanBasic.CAN_WriteFD(Channel, ref message);
+            PcanBasic.TPCANStatus status = PcanBasic.CAN_WriteFD(Channel, ref message);
             //uint status = PcanBasic.CAN_Write(channel, ref message);
 
             if (status == 0)

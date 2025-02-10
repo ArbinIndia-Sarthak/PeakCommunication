@@ -8,7 +8,7 @@ using static PeakCommunication.PcanBasic;
 
 namespace PeakCommunication
 {
-    public class ReceiveCANFD
+    public class ReceiveCAN
     {
         public class ReceiveCanMessage
         {
