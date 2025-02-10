@@ -1,4 +1,5 @@
 ﻿using Peak.Can.Basic.BackwardCompatibility;
+using static PeakCommunication.PcanBasic;
 
 namespace PeakCommunication
 {
@@ -6,10 +7,10 @@ namespace PeakCommunication
     {
         public static void InitialiseCANReceiver()
         {
-            uint channel = PcanBasic.PCAN_USB; // Change to the proper channel
+            var channel = TPCANHandle.PCAN_USB; // Change to the proper channel
             ushort bitrate = PcanBasic.PCAN_BAUD_500K;
 
-            // Initialize the channel with 500 kbps baud rate
+//            // Initialize the channel with 500 kbps baud rate
             uint status = PcanBasic.CAN_Initialize(channel, bitrate, 0, 0, 0);
 
             if (status != 0)
@@ -30,6 +31,8 @@ namespace PeakCommunication
         {
             PcanBasic.TPCANMsg message;
             nint timestamp = 0;
+            //message.TYPE = 4;
+            message.LEN = 16;
 
             while (true)
             {

@@ -1,25 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static PeakCommunication.PcanBasic;
+﻿using static PeakCommunication.PcanBasic;
 
 namespace PeakCommunication
 {
     public class SendCanMessage
     {
-        public static void InitialiseCANMessage() 
+        public static void InitialiseCANMessage()
         {
-            uint channel = PcanBasic.PCAN_USB; // Change to the proper channel
-            ushort bitrate = PcanBasic.PCAN_BAUD_500K;
+            var channel = TPCANHandle.PCAN_USB;  // Change to the proper channel
+                                                 // ushort bitrate = PcanBasic.PCAN_BAUD_500K;
+                                                 // Nominal Bitrate: 500 kbps, Data Bitrate: 2 Mbps
+            string bitrateFD = "f_clock_mhz=20, nom_brp=4, nom_tseg1=6, nom_tseg2=3, nom_sjw=1, data_brp=2, data_tseg1=3, data_tseg2=1, data_sjw=1";
+
+            PcanBasic.TPCANStatus status1 = PcanBasic.InitializeFD(channel, bitrateFD);
 
             // Initialize the channel with 500 kbps baud rate
-            uint status = PcanBasic.CAN_Initialize(channel, bitrate, 0, 0, 0);
+            //uint status = PcanBasic.CAN_Initialize(channel, bitrate, 0, 0, 0);
 
-            if (status != 0)
+            if (status1 != PcanBasic.TPCANStatus.PCAN_ERROR_OK)
             {
-                Console.WriteLine("Error initializing PCAN: " + status);
+                Console.WriteLine("Error initializing PCAN: " + status1);
                 return;
             }
             Console.WriteLine("PCAN initialized successfully!");
@@ -28,40 +27,54 @@ namespace PeakCommunication
             while (true)
             {
                 SendCANMessage(channel);
-                Thread.Sleep(1000);
+                Thread.Sleep(20);
             }
 
             // Uninitialize PCAN after use
             PcanBasic.CAN_Uninitialize(channel);
         }
 
-        static void SendCANMessage(uint channel)
+        static void SendCANMessage(TPCANHandle Channel)
         {
-            // Create a CAN message
-            TPCANMsg message = new TPCANMsg();
-            message.ID = 0x123; // Standard CAN ID (11-bit)
-            message.LEN = 8;    // Data length (max 8 bytes)
-            message.TYPE = 0; // Standard frame
 
-            // Set CAN data (example: 8-byte payload)
-            message.DATA = new byte[] { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
+            // Create a CAN message
+            PcanBasic.TPCANMsgFD message = new PcanBasic.TPCANMsgFD();
+            
+                message.ID = 0x123; // Standard CAN ID (11-bit)
+                message.DLC = 15;
+                message.MSGTYPE = PcanBasic.TPCANMessageType.PCAN_MESSAGE_FD | PcanBasic.TPCANMessageType.PCAN_MESSAGE_BRS; 
+
+                // Set CAN data (example: 8-byte payload)
+                message.DATA = new byte[64]
+                {
+                    0x12, 0x00, 0x00, 0x00, 0x12, 0x00, 0x00, 0x00,
+                    0x12, 0x00, 0x00, 0x00, 0x12, 0x00, 0x00, 0x00,
+                    0x12, 0x00, 0x00, 0x00, 0x12, 0x00, 0x00, 0x00,
+                    0x12, 0x00, 0x00, 0x00, 0x12, 0x00, 0x00, 0x00,
+                    0x12, 0x00, 0x00, 0x00, 0x12, 0x00, 0x00, 0x00,
+                    0x12, 0x00, 0x00, 0x00, 0x12, 0x00, 0x00, 0x00,
+                    0x12, 0x00, 0x00, 0x00, 0x12, 0x00, 0x00, 0x00,
+                    0x12, 0x00, 0x00, 0x00, 0x12, 0x00, 0x00, 0x00
+                };
+            
 
             // Send the message
-            uint status = PcanBasic.CAN_Write(channel, ref message);
+            PcanBasic.TPCANStatus status = PcanBasic.CAN_WriteFD(Channel, ref message);
+            //uint status = PcanBasic.CAN_Write(channel, ref message);
 
-            if (status == 0)
+            if (status == PcanBasic.TPCANStatus.PCAN_ERROR_OK)
             {
                 Console.WriteLine("Message sent successfully!");
-                for (int i = 0; i < message.LEN; i++)
+                for (int i = 0; i < message.DLC; i++)
                 {
                     Console.WriteLine(message.DATA[i]);
                 }
             }
             else
             {
-                Console.WriteLine("Error sending message: " + status);
+                Console.WriteLine("Initialization Error: 0x" + status.ToString("X"));
             }
         }
     }
-    
+
 }
