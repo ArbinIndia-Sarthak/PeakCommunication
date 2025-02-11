@@ -4,19 +4,21 @@ namespace PeakCommunication
 {
     public class ReceiveCAN
     {
-        public static void InitialiseCANReceiver()
+        public class ReceiveCanMessage
         {
-            var channel = TPCANHandle.PCAN_USB;  // Change to the proper channel
-            string bitrate = PcanBasic.PCAN_BAUD_500K;
-
-            uint status1 = PcanBasic.CAN_Initialize(channel, bitrate, 0, 0, 0);
-
-            if (status1 != (uint)PcanBasic.TPCANStatus.PCAN_ERROR_OK)
+            public static void InitialiseCANReceiver()
             {
-                Console.WriteLine("Error initializing PCAN: " + status1);
-                return;
-            }
-            Console.WriteLine("PCAN receiver initialized successfully!");
+                var channel = TPCANHandle.PCAN_USB;  // Change to the proper channel
+                PcanBasic.TPCANBaudrate bitrate = PcanBasic.TPCANBaudrate.PCAN_BAUD_500K;
+
+               uint status1 =PcanBasic.CAN_Initialize(channel, bitrate,0,0,0);
+
+                if (status1 != (uint)PcanBasic.TPCANStatus.PCAN_ERROR_OK)
+                {
+                    Console.WriteLine("Error initializing PCAN: " + status1);
+                    return;
+                }
+                Console.WriteLine("PCAN receiver initialized successfully!");
 
             // Start receiving CAN messages
             while (true)
@@ -29,19 +31,19 @@ namespace PeakCommunication
             CAN_Uninitialize(channel);
         }
 
-        static void ReceiveCANMessage(TPCANHandle Channel)
-        {
-            PcanBasic.TPCANMsg message;
-            nint timestamp = 0;
-            message.DLC = 8;
-            uint status = PcanBasic.CAN_Read(Channel, out message, timestamp);
-
-            if (status == (uint)PcanBasic.TPCANStatus.PCAN_ERROR_OK)
+            static void ReceiveCANMessage(TPCANHandle Channel)
             {
-                Console.WriteLine("Message received!");
-                Console.WriteLine("ID: 0x" + message.ID.ToString("X"));
-                Console.WriteLine("DLC: " + message.DLC);
-                Console.Write("Data: ");
+                PcanBasic.TPCANMsg message;
+                nint timestamp = 0;
+                message.DLC = 8;
+                uint status = PcanBasic.CAN_Read(Channel, out message,  timestamp);
+
+                if (status == (uint)PcanBasic.TPCANStatus.PCAN_ERROR_OK)
+                {
+                    Console.WriteLine("Message received!");
+                    Console.WriteLine("ID: 0x" + message.ID.ToString("X"));
+                    Console.WriteLine("DLC: " + message.DLC);
+                    Console.Write("Data: ");
 
                 for (int i = 0; i < message.DLC; i++)
                 {

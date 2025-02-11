@@ -10,10 +10,10 @@ class Program
 {
     static void Main(string[] args)
     {
-        ReadDBC.ReadDBCFile();
+        //ReadDBC.ReadDBCFile();
         
         //SendCANMessageFD.InitialiseCANMessage();
-        //SendCanMessage.InitialiseCANMessage();
+        SendCanMessage.InitialiseCANMessage();
         //ReceiveCANMessages.InitialiseCANReceiver();
         //ReceiveCANFD.InitialiseCANReceiver();
     }
