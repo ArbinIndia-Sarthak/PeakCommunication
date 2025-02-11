@@ -30,7 +30,7 @@ namespace PeakCommunication
             [MarshalAs(UnmanagedType.U1)]
             public TPCANMessageType MSGTYPE;
             public byte DLC;
-            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 64)]
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 8)]
             public byte[] DATA;
         }
         public struct TPCANMsgFD
@@ -94,12 +94,30 @@ namespace PeakCommunication
             PCAN_ISA = 0x21,
             PCAN_USB = 0x51
         }
+        public enum TPCANBaudrate : ushort
+        {
+            PCAN_BAUD_1M = 0x0014,
+            PCAN_BAUD_800K = 0x0016,
+            PCAN_BAUD_500K = 0x001C,
+            PCAN_BAUD_250K = 0x011C,
+            PCAN_BAUD_125K = 0x031C,
+            PCAN_BAUD_100K = 0x432F,
+            PCAN_BAUD_95K = 0xC34E,
+            PCAN_BAUD_83K = 0x852B,
+            PCAN_BAUD_50K = 0x472F,
+            PCAN_BAUD_47K = 0x1414,
+            PCAN_BAUD_33K = 0x8B2F,
+            PCAN_BAUD_20K = 0x532F,
+            PCAN_BAUD_10K = 0x672F,
+            PCAN_BAUD_5K = 0x7F7F,
+        }
+
 
 
         // Import PCAN-Basic functions
         [DllImport(PcanBasicDll, EntryPoint = "CAN_Initialize")]
-        public static extern uint CAN_Initialize(TPCANHandle Channel, TPCANBitrateFD Btr0Btr1, uint HwType, uint IOPort, ushort Interrupt);
-        public const string PCAN_BAUD_500K = "0x1C1";
+        public static extern uint CAN_Initialize(TPCANHandle Channel, TPCANBaudrate Btr0Btr1, uint HwType, uint IOPort, ushort Interrupt);
+        
 
         [DllImport(PcanBasicDll, EntryPoint = "CAN_InitializeFD")]
         public static extern TPCANStatus InitializeFD(TPCANHandle Channel, TPCANBitrateFD BitrateFD);
@@ -115,7 +133,7 @@ namespace PeakCommunication
         public static extern uint CAN_Write(TPCANHandle Channel, ref TPCANMsg Message);
 
         [DllImport(PcanBasicDll, EntryPoint = "CAN_Read")]
-        public static extern uint CAN_Read(uint Channel, out TPCANMsg Message, IntPtr Timestamp);
+        public static extern uint CAN_Read(TPCANHandle Channel, out TPCANMsg Message, IntPtr Timestamp);
 
         [DllImport(PcanBasicDll, EntryPoint = "CAN_ReadFD")]
         public static extern TPCANStatus CAN_ReadFD(TPCANHandle Channel, out TPCANMsgFD Message, out nint timestamp);

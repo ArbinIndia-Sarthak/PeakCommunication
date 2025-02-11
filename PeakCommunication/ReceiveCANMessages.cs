@@ -15,11 +15,11 @@ namespace PeakCommunication
             public static void InitialiseCANReceiver()
             {
                 var channel = TPCANHandle.PCAN_USB;  // Change to the proper channel
-                string bitrateFD = "f_clock_mhz=20, nom_brp=4, nom_tseg1=6, nom_tseg2=3, nom_sjw=1, data_brp=2, data_tseg1=3, data_tseg2=1, data_sjw=1";
+                PcanBasic.TPCANBaudrate bitrate = PcanBasic.TPCANBaudrate.PCAN_BAUD_500K;
 
-                PcanBasic.TPCANStatus status1 = PcanBasic.InitializeFD(channel, bitrateFD);
+               uint status1 =PcanBasic.CAN_Initialize(channel, bitrate,0,0,0);
 
-                if (status1 != PcanBasic.TPCANStatus.PCAN_ERROR_OK)
+                if (status1 != (uint)PcanBasic.TPCANStatus.PCAN_ERROR_OK)
                 {
                     Console.WriteLine("Error initializing PCAN: " + status1);
                     return;
@@ -39,12 +39,12 @@ namespace PeakCommunication
 
             static void ReceiveCANMessage(TPCANHandle Channel)
             {
-                PcanBasic.TPCANMsgFD message;
-                nint timestamp;
-                message.DLC = 64;
-                PcanBasic.TPCANStatus status = PcanBasic.CAN_ReadFD(Channel, out message, out timestamp);
+                PcanBasic.TPCANMsg message;
+                nint timestamp = 0;
+                message.DLC = 8;
+                uint status = PcanBasic.CAN_Read(Channel, out message,  timestamp);
 
-                if (status == PcanBasic.TPCANStatus.PCAN_ERROR_OK)
+                if (status == (uint)PcanBasic.TPCANStatus.PCAN_ERROR_OK)
                 {
                     Console.WriteLine("Message received!");
                     Console.WriteLine("ID: 0x" + message.ID.ToString("X"));
