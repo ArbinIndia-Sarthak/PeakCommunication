@@ -49,7 +49,9 @@ namespace PeakCommunication
                     {
                         Console.Write(message.DATA[i].ToString("X2") + " ");
                     }
+                    ConvertDatatype.ConvertCANData(message.DATA, message.DLC);
                     Console.WriteLine();
+
                 }
                 else
                 {
