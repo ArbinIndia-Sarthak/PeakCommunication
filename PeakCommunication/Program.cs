@@ -13,8 +13,8 @@ class Program
         //ReadDBC.ReadDBCFile();
         
         //SendCANMessageFD.InitialiseCANMessage();
-        //SendCanMessage.InitialiseCANMessage();
-        ReceiveCAN.ReceiveCanMessage.InitialiseCANReceiver();
+        SendCanMessage.InitialiseCANMessage();
+       //ReceiveCAN.ReceiveCanMessage.InitialiseCANReceiver();
         //ReceiveCANFD.InitialiseCANReceiver();
     }
 }

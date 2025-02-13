@@ -73,7 +73,7 @@ namespace PeakCommunication
                 Console.WriteLine("Message sent successfully!");
                 for (int i = 0; i < 64; i++)
                 {
-                    Console.WriteLine($"{ message.DATA[i]:X2}");
+                    Console.WriteLine($"Byte {i}: 0x{message.DATA[i]:X2}");
                 }
             }
             else
