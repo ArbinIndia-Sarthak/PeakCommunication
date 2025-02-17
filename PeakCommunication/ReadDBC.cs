@@ -11,6 +11,7 @@ namespace PeakCommunication
 {
     public class ReadDBC
     {
+        public static string finalContent;
         private static extern bool SetForegroundWindow(IntPtr hWnd);
         public static string ReadDBCFile()
         {
@@ -89,7 +90,7 @@ namespace PeakCommunication
 
             // print data in a .txt file
 
-            string finalContent = contents.ToString();
+            finalContent = contents.ToString();
 
             string txtFilePath = @"C:\ArbinSoftware\Detailed Messages and signals.txt"; // new file path
 
