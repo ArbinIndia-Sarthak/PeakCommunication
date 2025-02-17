@@ -36,9 +36,9 @@ namespace PeakCommunication
 
             // To check the data in file is available
 
-            //Console.WriteLine("Reading DBC file content...");
-            //string dbcRawContent = File.ReadAllText(dbcFilePath);
-            //Console.WriteLine(dbcRawContent.Substring(0, Math.Min(500, dbcRawContent.Length))); // Print first 500 chars
+            Console.WriteLine("Reading DBC file content...");
+            string dbcRawContent = File.ReadAllText(dbcFilePath);
+            Console.WriteLine(dbcRawContent.Substring(0, Math.Min(1500, dbcRawContent.Length))); // Print first 1000 chars
 
             StringBuilder contents = new StringBuilder();
 
@@ -46,14 +46,29 @@ namespace PeakCommunication
 
             try
             {
+                foreach(var valueTable in dbc.GlobalProperties)
+
                 foreach (var message in dbc.Messages)
                 {
-                    string messageInfo = $@"Message: {message.ID}, Name: {message.Name}, DLC: {message.DLC}, Comment: {message.Comment}";
+                    Console.WriteLine($"Message: 0x{message.ID.ToString("X")}, Name: {message.Name}, DLC: {message.DLC}, Comment: {message.Comment}");
+
+
+                    string messageInfo = $@"Message: 0x{message.ID.ToString("X")}, Name: {message.Name}, DLC: {message.DLC}, Comment: {message.Comment}";
                     contents.AppendLine(messageInfo);
 
                     // Iterate through all signals in the message
                     foreach (var signal in message.Signals)
                     {
+                        Console.WriteLine($@" Signal Name: {signal.Name}
+    StartBit: {signal.StartBit}
+    Length: {signal.Length}
+    Factor: {signal.Factor}
+    Offset: {signal.Offset}
+    ByteOrder: {signal.ByteOrder}
+    ValueType: {signal.ValueType}
+");
+
+
                         string signalInfo = $@" Signal Name: {signal.Name}
     StartBit: {signal.StartBit}
     Length: {signal.Length}
