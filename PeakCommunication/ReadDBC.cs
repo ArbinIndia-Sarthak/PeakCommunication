@@ -12,14 +12,14 @@ namespace PeakCommunication
     public class ReadDBC
     {
         private static extern bool SetForegroundWindow(IntPtr hWnd);
-        public static void ReadDBCFile()
+        public static string ReadDBCFile()
         {
             string dbcFilePath = @"C:\ArbinSoftware\amp_debug_v18.dbc"; // Corrected path
 
             if (!File.Exists(dbcFilePath))
             {
                 Console.WriteLine($"DBC file not found at: {dbcFilePath}");
-                return;
+                return string.Empty;
             }
 
             // Create an instance of the DBC parser
@@ -31,7 +31,7 @@ namespace PeakCommunication
             if (dbc == null)
             {
                 Console.WriteLine("Failed to parse DBC file.");
-                return;
+                return string.Empty;
             }
 
             // To check the data in file is available
@@ -89,7 +89,7 @@ namespace PeakCommunication
 
             // print data in a .txt file
 
-            string finalcontent = contents.ToString();
+            string finalContent = contents.ToString();
 
             string txtFilePath = @"C:\ArbinSoftware\Detailed Messages and signals.txt"; // new file path
 
@@ -101,7 +101,7 @@ namespace PeakCommunication
                     Console.WriteLine("File already exists at: " + txtFilePath);
 
                     // Overwrite the file with new contents
-                    File.WriteAllText(txtFilePath, finalcontent);
+                    File.WriteAllText(txtFilePath, finalContent);
 
                     //open the existing file and bring  in front
                     try
@@ -122,6 +122,8 @@ namespace PeakCommunication
                         {
                             SetForegroundWindow(hWnd);
                         }
+                        return finalContent;
+
                     }
                     catch (Exception ex)
                     {
@@ -131,11 +133,13 @@ namespace PeakCommunication
                 else
                 {
                     // Create and write to the file
-                    File.WriteAllText(txtFilePath, finalcontent);
+                    File.WriteAllText(txtFilePath, finalContent);
                     Console.WriteLine("File created and data written successfully.");
 
                     // Open the file
                     Process.Start(new ProcessStartInfo(txtFilePath) { UseShellExecute = true });
+
+                    return finalContent;
                 }
             }
             catch (Exception ex)
@@ -143,6 +147,7 @@ namespace PeakCommunication
                 Console.WriteLine("Error: " + ex.Message);
             }
 
+            return finalContent;
         }
     }
 }
