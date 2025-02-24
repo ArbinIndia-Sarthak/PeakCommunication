@@ -27,7 +27,7 @@ namespace PeakCommunication
             Console.WriteLine("PCAN initialized successfully!");
 
             // Example message ID for demonstration
-            uint messageID = 0x1E800010;
+            uint messageID = 0x1C180010;
 
             // Send CAN message in a loop
             while (true)
@@ -44,53 +44,59 @@ namespace PeakCommunication
             // Find the message section in the finalcontent
             string messagePattern = $"Message: 0x{messageID:X}";
             int messageIndex = finalcontent.IndexOf(messagePattern);
-            if (messageIndex == -1)
-            {
-                Console.WriteLine($"Message ID {messageID} not found in DBC content.");
-                return;
-            }
+            if (messageIndex == -1) return;
 
-            // Extract signals from the message
             string messageBlock = finalcontent.Substring(messageIndex);
             int nextMessageIndex = finalcontent.IndexOf("Message:", messageIndex + messagePattern.Length);
             messageBlock = nextMessageIndex != -1 ? messageBlock.Substring(0, nextMessageIndex - messageIndex) : messageBlock;
 
-            // Calculate total bit length based on signals
-            int maxBit = 0;
-            var signalPattern = @"StartBit: (\d+)\s+Length: (\d+)";
-            var matches = Regex.Matches(messageBlock, signalPattern);
+            int dlc = Regex.Match(messageBlock, @"DLC:\s*(\d+)") is Match dlcMatch && dlcMatch.Success
+                ? int.Parse(dlcMatch.Groups[1].Value)
+                : 0;
+
+            var matches = Regex.Matches(messageBlock, @"StartBit: (\d+)\s+Length: (\d+)");
+            byte[] data = new byte[64];
+
+            int maxBit = 0, index = 0;
             foreach (Match match in matches)
             {
                 int startBit = int.Parse(match.Groups[1].Value);
                 int length = int.Parse(match.Groups[2].Value);
-                int signalEnd = startBit + length;
-                if (signalEnd > maxBit) maxBit = signalEnd;
+                ushort value = (ushort)(0x10 + index++); // Assign dummy values
+
+                for (int i = 0; i < length; i++)
+                {
+                    int bitPos = startBit + i, byteIndex = bitPos / 8, bitOffset = bitPos % 8;
+                    if ((value & (1 << i)) != 0) data[byteIndex] |= (byte)(1 << bitOffset);
+                }
+                maxBit = Math.Max(maxBit, startBit + length);
             }
 
-            // Calculate DLC: (maxBit / 8) rounded up
-            int dlc = (int)Math.Ceiling(maxBit / 8.0);
-            dlc = dlc > 64 ? 64 : dlc; // Limit DLC to 64 bytes for CAN FD
+            dlc = dlc > 0 ? dlc : (int)Math.Ceiling(maxBit / 8.0);
+            dlc = Math.Min(dlc, 64);
 
             // Prepare message
             PcanBasic.TPCANMsgFD message = new PcanBasic.TPCANMsgFD
             {
                 ID = messageID,
                 DLC = (byte)dlc,
-                MSGTYPE = PcanBasic.TPCANMessageType.PCAN_MESSAGE_FD | PcanBasic.TPCANMessageType.PCAN_MESSAGE_BRS,
-                DATA = new byte[dlc]
+                MSGTYPE = PcanBasic.TPCANMessageType.PCAN_MESSAGE_FD | PcanBasic.TPCANMessageType.PCAN_MESSAGE_BRS | PcanBasic.TPCANMessageType.PCAN_MESSAGE_EXTENDED,
+                DATA = new byte[64]
             };
+            Array.Copy(data, message.DATA, dlc);
 
-            // Populate data (dummy pattern for illustration)
-            for (int i = 0; i < dlc; i++)
-            {
-                message.DATA[i] = (byte)(i + 1);
-            }
-
-            // Send the message
+             // Send the message
             var status = PcanBasic.CAN_WriteFD(Channel, ref message);
             if (status == PcanBasic.TPCANStatus.PCAN_ERROR_OK)
             {
-                Console.WriteLine($"Message ID {messageID} sent successfully with DLC {dlc}");
+                Console.WriteLine($"Sending Message ID: 0x{message.ID:X}");
+                Console.WriteLine($"DLC: {message.DLC}");
+                Console.Write("DATA: ");
+                for (int i = 0; i < message.DLC; i++)
+                {
+                    Console.Write($"{message.DATA[i]:X2} "); // Print data in hex format
+                }
+                Console.WriteLine();
             }
             else
             {
