@@ -13,11 +13,11 @@ class Program
         ReadDBC.ReadDBCFile();
 
         //SendCANMessageFD.InitialiseCANMessage();
-        //SendCanMessage.InitialiseCANMessage();
+        //SendCanMessage. InitialiseCANMessage();
         //ReceiveCAN.ReceiveCanMessage.InitialiseCANReceiver();
         //ReceiveCANFD.InitialiseCANReceiver();
         //SendCanMsgUsingDBC.InitialiseCANMessage();
-        ReceiveCanMsgUsingDBC.InitializeDBCData();
+         ReceiveCanMsgUsingDBC.InitializeDBCData();
         
     }
 }
