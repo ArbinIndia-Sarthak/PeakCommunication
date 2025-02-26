@@ -16,7 +16,8 @@ class Program
         //SendCanMessage.InitialiseCANMessage();
         //ReceiveCAN.ReceiveCanMessage.InitialiseCANReceiver();
         //ReceiveCANFD.InitialiseCANReceiver();
-        SendCanMsgUsingDBC.InitialiseCANMessage();
+        //SendCanMsgUsingDBC.InitialiseCANMessage();
+        ReceiveCanMsgUsingDBC.InitializeDBCData();
         
     }
 }

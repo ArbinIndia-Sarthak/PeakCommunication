@@ -61,23 +61,23 @@ namespace PeakCommunication
                     foreach (var signal in message.Signals)
                     {
                         Console.WriteLine($@" Signal Name: {signal.Name}
-    StartBit: {signal.StartBit}
-    Length: {signal.Length}
-    Factor: {signal.Factor}
-    Offset: {signal.Offset}
-    ByteOrder: {signal.ByteOrder}
-    ValueType: {signal.ValueType}
-");
+                            StartBit: {signal.StartBit}
+                            Length: {signal.Length}
+                            Factor: {signal.Factor}
+                            Offset: {signal.Offset}
+                            ByteOrder: {signal.ByteOrder}
+                            ValueType: {signal.ValueType}
+                        ");
 
 
                         string signalInfo = $@" Signal Name: {signal.Name}
-    StartBit: {signal.StartBit}
-    Length: {signal.Length}
-    Factor: {signal.Factor}
-    Offset: {signal.Offset}
-    ByteOrder: {signal.ByteOrder}
-    ValueType: {signal.ValueType}
-";
+                            StartBit: {signal.StartBit}
+                            Length: {signal.Length}
+                            Factor: {signal.Factor}
+                            Offset: {signal.Offset}
+                            ByteOrder: {signal.ByteOrder}
+                            ValueType: {signal.ValueType}
+                        ";
                         contents.AppendLine(signalInfo);
                     }
                 }
