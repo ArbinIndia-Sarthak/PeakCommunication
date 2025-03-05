@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="DbcParserLib" Version="1.7.0" />
+    <PackageReference Include="NetTopologySuite" Version="2.5.0" />
     <PackageReference Include="Peak.PCANBasic.NET" Version="4.10.0.964" />
   </ItemGroup>
 
