@@ -13,6 +13,7 @@ namespace PeakCommunication
     public class SendCanMsgUsingDBC
     {
         public string dbcContent = ReadDBC.finalContent;
+
         public static void InitialiseCANMessage()
         {
             var channel = TPCANHandle.PCAN_USB;  // Change to the proper channel
@@ -26,82 +27,110 @@ namespace PeakCommunication
             }
             Console.WriteLine("PCAN initialized successfully!");
 
-            // Example message ID for demonstration
-            uint messageID = 0x1C180010;
+            // List of message IDs to send simultaneously
+            uint[] messageIDs = { 0x19100010, 0x17C00010, 0x16600010 };
 
-            // Send CAN message in a loop
-            while (true)
+            // Start a thread for each message ID
+            List<Thread> threads = new List<Thread>();
+            foreach (var messageID in messageIDs)
             {
-                SendFDCANMessage(channel, ReadDBC.finalContent, messageID);
-                Thread.Sleep(20);
+                Thread thread = new Thread(() => SendFDCANMessages(channel, ReadDBC.finalContent, messageID));
+                thread.IsBackground = true;
+                thread.Start();
+                threads.Add(thread);
             }
 
+            // Keep the main thread alive
+            Console.WriteLine("Press any key to stop...");
+            Console.ReadKey();
             PcanBasic.CAN_Uninitialize(channel);
+            Console.WriteLine("PCAN Uninitialized.");
+        }
+
+        static void SendFDCANMessages(TPCANHandle Channel, string finalcontent, uint messageID)
+        {
+            try
+            {
+                while (true)
+                {
+                    SendFDCANMessage(Channel, finalcontent, messageID);
+                    Thread.Sleep(20);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in thread for Message ID {messageID}: {ex.Message}");
+            }
         }
 
         static void SendFDCANMessage(TPCANHandle Channel, string finalcontent, uint messageID)
         {
-            // Find the message section in the finalcontent
-            string messagePattern = $"Message: 0x{messageID:X}";
-            int messageIndex = finalcontent.IndexOf(messagePattern);
-            if (messageIndex == -1) return;
-
-            string messageBlock = finalcontent.Substring(messageIndex);
-            int nextMessageIndex = finalcontent.IndexOf("Message:", messageIndex + messagePattern.Length);
-            messageBlock = nextMessageIndex != -1 ? messageBlock.Substring(0, nextMessageIndex - messageIndex) : messageBlock;
-
-            int dlc = Regex.Match(messageBlock, @"DLC:\s*(\d+)") is Match dlcMatch && dlcMatch.Success
-                ? int.Parse(dlcMatch.Groups[1].Value)
-                : 0;
-
-            var matches = Regex.Matches(messageBlock, @"StartBit: (\d+)\s+Length: (\d+)");
-            byte[] data = new byte[64];
-
-            int maxBit = 0, index = 0;
-            foreach (Match match in matches)
+            try
             {
-                int startBit = int.Parse(match.Groups[1].Value);
-                int length = int.Parse(match.Groups[2].Value);
-                ushort value = (ushort)(0x10 + index++); // Assign dummy values
+                string messagePattern = $"Message: 0x{messageID:X}";
+                int messageIndex = finalcontent.IndexOf(messagePattern);
+                if (messageIndex == -1) return;
 
-                for (int i = 0; i < length; i++)
+                string messageBlock = finalcontent.Substring(messageIndex);
+                int nextMessageIndex = finalcontent.IndexOf("Message:", messageIndex + messagePattern.Length);
+                messageBlock = nextMessageIndex != -1 ? messageBlock.Substring(0, nextMessageIndex - messageIndex) : messageBlock;
+
+                int dlc = Regex.Match(messageBlock, @"DLC:\s*(\d+)") is Match dlcMatch && dlcMatch.Success
+                    ? int.Parse(dlcMatch.Groups[1].Value)
+                    : 0;
+
+                var matches = Regex.Matches(messageBlock, @"StartBit: (\d+)\s+Length: (\d+)");
+                byte[] data = new byte[64];
+
+                int maxBit = 0, index = 0;
+                foreach (Match match in matches)
                 {
-                    int bitPos = startBit + i, byteIndex = bitPos / 8, bitOffset = bitPos % 8;
-                    if ((value & (1 << i)) != 0) data[byteIndex] |= (byte)(1 << bitOffset);
+                    int startBit = int.Parse(match.Groups[1].Value);
+                    int length = int.Parse(match.Groups[2].Value);
+                    ushort value = (ushort)(0x10 + index++);
+
+                    for (int i = 0; i < length; i++)
+                    {
+                        int bitPos = startBit + i, byteIndex = bitPos / 8, bitOffset = bitPos % 8;
+                        if ((value & (1 << i)) != 0) data[byteIndex] |= (byte)(1 << bitOffset);
+                    }
+                    maxBit = Math.Max(maxBit, startBit + length);
                 }
-                maxBit = Math.Max(maxBit, startBit + length);
-            }
 
-            dlc = dlc > 0 ? dlc : (int)Math.Ceiling(maxBit / 8.0);
-            dlc = Math.Min(dlc, 64);
+                dlc = dlc > 0 ? dlc : (int)Math.Ceiling(maxBit / 8.0);
+                dlc = Math.Min(dlc, 64);
 
-            // Prepare message
-            PcanBasic.TPCANMsgFD message = new PcanBasic.TPCANMsgFD
-            {
-                ID = messageID,
-                DLC = (byte)dlc,
-                MSGTYPE = PcanBasic.TPCANMessageType.PCAN_MESSAGE_FD | PcanBasic.TPCANMessageType.PCAN_MESSAGE_BRS | PcanBasic.TPCANMessageType.PCAN_MESSAGE_EXTENDED,
-                DATA = new byte[64]
-            };
-            Array.Copy(data, message.DATA, dlc);
-
-             // Send the message
-            var status = PcanBasic.CAN_WriteFD(Channel, ref message);
-            if (status == PcanBasic.TPCANStatus.PCAN_ERROR_OK)
-            {
-                Console.WriteLine($"Sending Message ID: 0x{message.ID:X}");
-                Console.WriteLine($"DLC: {message.DLC}");
-                Console.Write("DATA: ");
-                for (int i = 0; i < message.DLC; i++)
+                PcanBasic.TPCANMsgFD message = new PcanBasic.TPCANMsgFD
                 {
-                    Console.Write($"{message.DATA[i]:X2} "); // Print data in hex format
+                    ID = messageID,
+                    DLC = (byte)dlc,
+                    MSGTYPE = PcanBasic.TPCANMessageType.PCAN_MESSAGE_FD | PcanBasic.TPCANMessageType.PCAN_MESSAGE_BRS | PcanBasic.TPCANMessageType.PCAN_MESSAGE_EXTENDED,
+                    DATA = new byte[64]
+                };
+                Array.Copy(data, message.DATA, dlc);
+
+                var status = PcanBasic.CAN_WriteFD(Channel, ref message);
+                if (status == PcanBasic.TPCANStatus.PCAN_ERROR_OK)
+                {
+                    Console.WriteLine($"Sent Message ID: 0x{message.ID:X}");
+                    Console.WriteLine($"DLC: {message.DLC}");
+                    Console.Write("DATA: ");
+                    for (int i = 0; i < message.DLC; i++)
+                    {
+                        Console.Write($"{message.DATA[i]:X2} ");
+                    }
+                    Console.WriteLine();
                 }
-                Console.WriteLine();
+                else
+                {
+                    Console.WriteLine($"Failed to send message. Error: {status}");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                Console.WriteLine($"Failed to send message. Error: {status}");
+                Console.WriteLine($"Exception in sending message {messageID}: {ex.Message}");
             }
         }
     }
+
 }
