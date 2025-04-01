@@ -12,10 +12,14 @@ namespace PeakCommunication
     public class ReadDBC
     {
         public static string finalContent;
+
+        public static object filteredMessages { get; private set; }
+
         private static extern bool SetForegroundWindow(IntPtr hWnd);
+
         public static string ReadDBCFile()
         {
-            string dbcFilePath = @"C:\ArbinSoftware\amp_debug_v18.dbc"; // Corrected path
+            string dbcFilePath = @"C:\ArbinSoftware\merged_instancing.dbc"; // Corrected path
 
             if (!File.Exists(dbcFilePath))
             {
@@ -27,7 +31,9 @@ namespace PeakCommunication
 
 
             // Parse the DBC file
-            Dbc dbc = Parser.ParseFromPath(dbcFilePath);
+            //Dbc dbc = Parser.ParseFromPath(dbcFilePath);
+            Dbc dbc = Parser.Parse(File.ReadAllText(dbcFilePath));
+
 
             if (dbc == null)
             {
@@ -39,7 +45,7 @@ namespace PeakCommunication
 
             Console.WriteLine("Reading DBC file content...");
             string dbcRawContent = File.ReadAllText(dbcFilePath);
-            Console.WriteLine(dbcRawContent.Substring(0, Math.Min(1500, dbcRawContent.Length))); // Print first 1000 chars
+            Console.WriteLine(dbcRawContent.Substring(0, Math.Min(1500, dbcRawContent.Length))); // Print first 1500 chars
 
             StringBuilder contents = new StringBuilder();
 
@@ -47,20 +53,20 @@ namespace PeakCommunication
 
             try
             {
-                foreach(var valueTable in dbc.GlobalProperties)
+                foreach (var valueTable in dbc.GlobalProperties)
 
-                foreach (var message in dbc.Messages)
-                {
-                    Console.WriteLine($"Message: 0x{message.ID.ToString("X")}, Name: {message.Name}, DLC: {message.DLC}, Comment: {message.Comment}");
-
-
-                    string messageInfo = $@"Message: 0x{message.ID.ToString("X")}, Name: {message.Name}, DLC: {message.DLC}, Comment: {message.Comment}";
-                    contents.AppendLine(messageInfo);
-
-                    // Iterate through all signals in the message
-                    foreach (var signal in message.Signals)
+                    foreach (var message in dbc.Messages)
                     {
-                        Console.WriteLine($@" Signal Name: {signal.Name}
+                        Console.WriteLine($"Message: 0x{message.ID.ToString("X")}, Name: {message.Name}, DLC: {message.DLC}, Comment: {message.Comment}");
+
+
+                        string messageInfo = $@"Message: 0x{message.ID.ToString("X")}, Name: {message.Name}, DLC: {message.DLC}, Comment: {message.Comment}";
+                        contents.AppendLine(messageInfo);
+
+                        // Iterate through all signals in the message
+                        foreach (var signal in message.Signals)
+                        {
+                            Console.WriteLine($@" Signal Name: {signal.Name}
                             StartBit: {signal.StartBit}
                             Length: {signal.Length}
                             Factor: {signal.Factor}
@@ -70,7 +76,7 @@ namespace PeakCommunication
                         ");
 
 
-                        string signalInfo = $@" Signal Name: {signal.Name}
+                            string signalInfo = $@" Signal Name: {signal.Name}
                             StartBit: {signal.StartBit}
                             Length: {signal.Length}
                             Factor: {signal.Factor}
@@ -78,9 +84,9 @@ namespace PeakCommunication
                             ByteOrder: {signal.ByteOrder}
                             ValueType: {signal.ValueType}
                         ";
-                        contents.AppendLine(signalInfo);
+                            contents.AppendLine(signalInfo);
+                        }
                     }
-                }
             }
             catch (Exception ex)
             {
@@ -150,5 +156,40 @@ namespace PeakCommunication
 
             return finalContent;
         }
+
+        //public static string ReadDBCFile()
+        //{
+        //    string dbcFilePath = @"C:\ArbinSoftware\merged_instancing.dbc"; // Corrected path
+        //    var originalLines = File.ReadAllLines(dbcFilePath);
+        //    var filteredLines = new List<string>();
+
+        //    foreach (var line in originalLines)
+        //    {
+        //        if (line.StartsWith("BO_"))
+        //        {
+        //            var parts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+        //            if (parts.Length >= 2 && uint.TryParse(parts[1], out uint messageId))
+        //            {
+        //                if (messageId > int.MaxValue)
+        //                {
+        //                    Console.WriteLine($"Skipping message with ID {messageId} (too large for parser).");
+        //                    continue; // Skip this message
+        //                }
+        //            }
+        //        }
+
+        //        filteredLines.Add(line);
+        //    }
+
+        //    var tempFilteredPath = Path.Combine(Path.GetDirectoryName(dbcFilePath), "filtered.dbc");
+        //    File.WriteAllLines(tempFilteredPath, filteredLines);
+
+        //    // Parse the cleaned-up DBC file
+        //    var dbc = Parser.Parse(File.ReadAllText(tempFilteredPath));
+
+        //    return null;
+
+        //}
     }
 }
