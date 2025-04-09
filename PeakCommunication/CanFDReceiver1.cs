@@ -1,16 +1,14 @@
 ﻿using DbcParserLib;
-using NetTopologySuite.IO;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+using System.Threading;
 using static PeakCommunication.PcanBasic;
 
 namespace PeakCommunication
 {
-    public class ReadFDCANMessage
+    public class CanFDReceiver1
     {
         private static Dictionary<uint, List<string>> messageSignalMapping = new();
 
@@ -23,7 +21,6 @@ namespace PeakCommunication
                 return;
             }
 
-            // Extract all messages and signals from DBC content
             string[] messages = finalContent.Split(new[] { "Message:" }, StringSplitOptions.RemoveEmptyEntries);
 
             foreach (string messageBlock in messages)
@@ -43,6 +40,7 @@ namespace PeakCommunication
             }
             ReceiveCANMessage();
         }
+
         public static void ReceiveCANMessage()
         {
             var channel = TPCANHandle.PCAN_USB;
@@ -62,6 +60,7 @@ namespace PeakCommunication
                 Thread.Sleep(20);
             }
         }
+
         static void ReadCANFDMessage(TPCANHandle Channel)
         {
             TPCANMsgFD message = new TPCANMsgFD();
@@ -84,14 +83,10 @@ namespace PeakCommunication
                     Console.WriteLine("Matched Signals:");
                     foreach (var signal in signalNames)
                     {
-                        // Get signal details from DBC
                         var signalInfo = GetSignalDetails(message.ID, signal);
                         if (signalInfo != null)
                         {
-                            // Extract signal value
                             int rawValue = ExtractSignalData(message.DATA, signalInfo.StartBit, signalInfo.Length, signalInfo.ByteOrder);
-
-                            // Print extracted signal info
                             Console.WriteLine($"  - {signal} | StartBit: {signalInfo.StartBit}, Length: {signalInfo.Length}, Raw Value: {rawValue}");
                         }
                         else
@@ -102,7 +97,7 @@ namespace PeakCommunication
                 }
                 else
                 {
-                    Console.WriteLine($"No matching signal found for Message ID: 0x{message.ID:X}. Please check DBC file.");
+                    Console.WriteLine($"No matching signal found for Message ID: 0x{message.ID:X}");
                 }
             }
             else if (status != PcanBasic.TPCANStatus.PCAN_ERROR_QRCVEMPTY)
@@ -111,18 +106,15 @@ namespace PeakCommunication
             }
         }
 
-        // Function to get signal details from DBC file
         static SignalInfo GetSignalDetails(uint messageID, string signalName)
         {
-            // Parse the DBC file (if not already done)
-            Dbc dbc = Parser.ParseFromPath(@"C:\ArbinSoftware\amp_debug_v18.dbc");
+            Dbc dbc = Parser.ParseFromPath(@"C:\\ArbinSoftware\\amp_debug_v18.dbc");
             if (dbc == null)
             {
                 Console.WriteLine("Failed to parse DBC file.");
                 return null;
             }
 
-            // Find the message by ID
             var message = dbc.Messages.FirstOrDefault(m => m.ID == messageID);
             if (message == null)
             {
@@ -130,7 +122,6 @@ namespace PeakCommunication
                 return null;
             }
 
-            // Find the signal by name
             var signal = message.Signals.FirstOrDefault(s => s.Name == signalName);
             if (signal == null)
             {
@@ -142,17 +133,14 @@ namespace PeakCommunication
             {
                 StartBit = signal.StartBit,
                 Length = signal.Length,
-                ByteOrder = signal.ByteOrder  // 1 = Big-endian, 0 = Little-endian
-
+                ByteOrder = signal.ByteOrder
             };
         }
 
-        // Function to extract bits from the CAN data array
         static int ExtractSignalData(byte[] data, int startBit, int length, int byteOrder)
         {
             int rawValue = 0;
 
-            // Extract bits based on startBit and length
             for (int i = 0; i < length; i++)
             {
                 int bitPosition = startBit + i;
@@ -165,7 +153,6 @@ namespace PeakCommunication
                 }
             }
 
-            // Handle big-endian conversion if needed
             if (byteOrder == 0) // Big-endian
             {
                 rawValue = ReverseBits(rawValue, length);
@@ -174,7 +161,6 @@ namespace PeakCommunication
             return rawValue;
         }
 
-        // Function to reverse bits for big-endian conversion
         static int ReverseBits(int value, int bitCount)
         {
             int reversed = 0;
@@ -188,14 +174,11 @@ namespace PeakCommunication
             return reversed;
         }
 
-        // Class to hold signal information
         class SignalInfo
         {
             public int StartBit { get; set; }
             public int Length { get; set; }
             public int ByteOrder { get; set; }
         }
-
-
     }
 }

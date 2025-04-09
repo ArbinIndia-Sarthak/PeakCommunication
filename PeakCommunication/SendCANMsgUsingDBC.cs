@@ -67,59 +67,85 @@ namespace PeakCommunication
         {
             try
             {
+                // Find the message section in the final content
                 string messagePattern = $"Message: 0x{messageID:X}";
                 int messageIndex = finalcontent.IndexOf(messagePattern);
-                if (messageIndex == -1) return;
+                if (messageIndex == -1)
+                {
+                    Console.WriteLine($"Message ID 0x{messageID:X} not found in DBC.");
+                    return;
+                }
 
                 string messageBlock = finalcontent.Substring(messageIndex);
                 int nextMessageIndex = finalcontent.IndexOf("Message:", messageIndex + messagePattern.Length);
                 messageBlock = nextMessageIndex != -1 ? messageBlock.Substring(0, nextMessageIndex - messageIndex) : messageBlock;
 
+                // Extract DLC (Data Length Code)
                 int dlc = Regex.Match(messageBlock, @"DLC:\s*(\d+)") is Match dlcMatch && dlcMatch.Success
                     ? int.Parse(dlcMatch.Groups[1].Value)
                     : 0;
 
+                // Extract signals: StartBit and Length
                 var matches = Regex.Matches(messageBlock, @"StartBit: (\d+)\s+Length: (\d+)");
                 byte[] data = new byte[64];
 
-                int maxBit = 0, index = 0;
+                Random random = new Random(); // Random number generator
+                int maxBit = 0, signalIndex = 1;
+
+                Console.WriteLine($"Message ID: 0x{messageID:X}");
+                Console.WriteLine("--------------------------------------------------");
+
                 foreach (Match match in matches)
                 {
                     int startBit = int.Parse(match.Groups[1].Value);
                     int length = int.Parse(match.Groups[2].Value);
-                    ushort value = (ushort)(0x10 + index++);
+
+                    // Generate a random value based on signal length
+                    int maxValue = (1 << length) - 1; // Max value for the given bit length
+                    ushort value = (ushort)random.Next(0, maxValue + 1);
+
+                    // Print the random value in decimal format
+                    Console.WriteLine($"Signal {signalIndex++}: StartBit={startBit}, Length={length}, Value={value}");
 
                     for (int i = 0; i < length; i++)
                     {
                         int bitPos = startBit + i, byteIndex = bitPos / 8, bitOffset = bitPos % 8;
-                        if ((value & (1 << i)) != 0) data[byteIndex] |= (byte)(1 << bitOffset);
+                        if ((value & (1 << i)) != 0)
+                        {
+                            data[byteIndex] |= (byte)(1 << bitOffset);
+                        }
                     }
                     maxBit = Math.Max(maxBit, startBit + length);
                 }
 
+                // Adjust DLC based on the maximum bit position used
                 dlc = dlc > 0 ? dlc : (int)Math.Ceiling(maxBit / 8.0);
                 dlc = Math.Min(dlc, 64);
 
+                // Prepare CAN FD message
                 PcanBasic.TPCANMsgFD message = new PcanBasic.TPCANMsgFD
                 {
                     ID = messageID,
                     DLC = (byte)dlc,
-                    MSGTYPE = PcanBasic.TPCANMessageType.PCAN_MESSAGE_FD | PcanBasic.TPCANMessageType.PCAN_MESSAGE_BRS | PcanBasic.TPCANMessageType.PCAN_MESSAGE_EXTENDED,
+                    MSGTYPE = PcanBasic.TPCANMessageType.PCAN_MESSAGE_FD |
+                              PcanBasic.TPCANMessageType.PCAN_MESSAGE_BRS |
+                              PcanBasic.TPCANMessageType.PCAN_MESSAGE_EXTENDED,
                     DATA = new byte[64]
                 };
                 Array.Copy(data, message.DATA, dlc);
 
+                // Send the message
                 var status = PcanBasic.CAN_WriteFD(Channel, ref message);
                 if (status == PcanBasic.TPCANStatus.PCAN_ERROR_OK)
                 {
-                    Console.WriteLine($"Sent Message ID: 0x{message.ID:X}");
-                    Console.WriteLine($"DLC: {message.DLC}");
+                    Console.WriteLine("Message sent successfully!");
                     Console.Write("DATA: ");
                     for (int i = 0; i < message.DLC; i++)
                     {
-                        Console.Write($"{message.DATA[i]:X2} ");
+                        Console.Write($"{message.DATA[i]} "); // Print data in decimal format
                     }
                     Console.WriteLine();
+                    Console.WriteLine("--------------------------------------------------\n");
                 }
                 else
                 {
@@ -131,6 +157,7 @@ namespace PeakCommunication
                 Console.WriteLine($"Exception in sending message {messageID}: {ex.Message}");
             }
         }
-    }
 
+
+    }
 }
