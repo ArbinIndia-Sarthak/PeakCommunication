@@ -73,7 +73,7 @@ namespace PeakCommunication
                             Offset: {signal.Offset}
                             ByteOrder: {signal.ByteOrder}
                             ValueType: {signal.ValueType}
-                        ");
+                            ");
 
 
                             string signalInfo = $@" Signal Name: {signal.Name}
@@ -83,7 +83,7 @@ namespace PeakCommunication
                             Offset: {signal.Offset}
                             ByteOrder: {signal.ByteOrder}
                             ValueType: {signal.ValueType}
-                        ";
+                            ";
                             contents.AppendLine(signalInfo);
                         }
                     }
@@ -157,6 +157,7 @@ namespace PeakCommunication
             return finalContent;
         }
 
+
         //public static string ReadDBCFile()
         //{
         //    string dbcFilePath = @"C:\ArbinSoftware\merged_instancing.dbc"; // Corrected path
@@ -190,6 +191,57 @@ namespace PeakCommunication
 
         //    return null;
 
+        //}
+
+        //public static string ReadDBCFile()
+        //{
+        //    string dbcFilePath = @"C:\ArbinSoftware\merged_instancing.dbc"; // Corrected path
+        //    var originalLines = File.ReadAllLines(dbcFilePath);
+        //    var filteredLines = new List<string>();
+
+            
+
+        //    foreach (var line in originalLines)
+        //    {
+        //        if (line.StartsWith("BO_"))
+        //        {
+        //            var parts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+        //            if (parts.Length >= 2 && ulong.TryParse(parts[1], out ulong messageId))
+        //            {
+        //                if (messageId > uint.MaxValue)
+        //                {
+        //                    Console.WriteLine($"Skipping message ID {messageId} (too large for parser).");
+        //                    continue;
+        //                }
+        //            }
+
+        //            if (line.StartsWith("SG_"))
+        //            {
+        //                parts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+        //                if (parts.Length > 2 && int.TryParse(parts[2], out int startBit))
+        //                {
+        //                    if (startBit > 63) // Filter invalid large start bits
+        //                    {
+        //                        Console.WriteLine($"Skipping signal with start bit {startBit} (too large)");
+        //                        continue;
+        //                    }
+        //                }
+        //            }
+        //        }
+
+        //        filteredLines.Add(line);
+        //        Console.WriteLine(filteredLines);
+        //    }
+
+        //    var tempFilteredPath = Path.Combine(Path.GetDirectoryName(dbcFilePath), "filtered.dbc");
+        //    File.WriteAllLines(tempFilteredPath, filteredLines);
+
+        //    // Parse the cleaned-up DBC file
+        //    var dbc = Parser.Parse(File.ReadAllText(tempFilteredPath));
+
+        //    return null;
         //}
     }
 }

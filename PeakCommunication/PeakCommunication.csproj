@@ -15,6 +15,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DbcParser-main\DbcParserLib\DbcParserLib.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="PCANBasic.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

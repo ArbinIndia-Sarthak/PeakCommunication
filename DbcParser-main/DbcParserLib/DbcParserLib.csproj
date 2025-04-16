@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <OutputType>Library</OutputType>
+    <TargetFrameworks>netstandard2.0;net462;net6.0;net8.0</TargetFrameworks>
+    <Authors>Emanuel Feru</Authors>
+    <Description>DbcParserLib is a .NET dbc file parser library for CAN bus network signals. This library can also be used to pack and unpack CAN signals.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/EFeru/DbcParser</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/EFeru/DbcParser</RepositoryUrl>
+    <PackageTags>dbc can parser reader pack unpack signal</PackageTags>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <PackageReleaseNotes></PackageReleaseNotes>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>1.7.0</Version>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup> 
+
+  <ItemGroup>
+    <None Include="..\README.md" Pack="true" PackagePath="\"/>
+  </ItemGroup>
+</Project>
